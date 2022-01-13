@@ -12,6 +12,10 @@
 #define defaultUser "anonymous"
 #define defaultPass ""
 
+// USED ONLY FOR THE PROGRESS BAR
+#define fiftySpaces "                                                  "
+#define fiftyEquals "=================================================="
+
 typedef struct download
 {
     char *user;
@@ -21,6 +25,7 @@ typedef struct download
     char *file;
 } Download;
 
+void progress_bar(size_t items_processed, size_t total_items, int progress_bar_size);
 int get_download_details(const char *url, Download *download);
 void free_download(Download *download);
 /*
@@ -160,7 +165,6 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    
     // Reading reply
     bzero(buf, BufMaxSize);
     code = getmessage(fp, buf, BufMaxSize);
@@ -245,7 +249,7 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    // Writing RETR
+    // Writing retrieve file command
     bzero(buf, BufMaxSize);
     strcat(buf, "RETR ");
     strcat(buf, download.filepath);
@@ -270,20 +274,36 @@ int main(int argc, char const *argv[])
         return code;
     }
 
+    size_t file_size = 0;
+    // Getting file size
+    char *occurrence = strrchr(buf, '(');
+    if (occurrence != NULL)
+    {
+        file_size = atoi(occurrence + 1);
+        printf("Downloading %s (%ld bytes)\n", download.file, file_size);
+    }
+
+    // Reading file contents
     FILE *file_to_transfer, *dataFP;
     dataFP = fdopen(dataSockFD, "rb");
     file_to_transfer = fopen(download.file, "wb");
+    size_t total_bytes_read = 0;
     while (!feof(dataFP))
     {
         bzero(buf, BufMaxSize);
         int bytes_read = fread(buf, 1, BufMaxSize, dataFP);
+        total_bytes_read += bytes_read;
         if (bytes_read < 0)
         {
             perror("fread()");
             return bytes_read;
         }
         fwrite(buf, 1, bytes_read, file_to_transfer);
+        if (file_size != 0)
+            progress_bar(total_bytes_read, file_size, 50);
     }
+    if (file_size != 0)
+        printf("\n");
     fclose(file_to_transfer);
 
     // Reading transfer complete confirmation
@@ -401,4 +421,12 @@ int getmessage(FILE *fp, char *buf, size_t len)
             return -1;
     }
     return atoi(code_str);
+}
+
+void progress_bar(size_t items_processed, size_t total_items, int progress_bar_size)
+{
+    int x = progress_bar_size * items_processed / total_items;
+    int percentage = 100 * items_processed / total_items;
+    printf("\r[%.*s%.*s]%d%%", x, fiftyEquals, (progress_bar_size - x), fiftySpaces, percentage);
+    fflush(stdout);
 }
