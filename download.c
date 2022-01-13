@@ -332,7 +332,8 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if(file_size != total_bytes_read){
+    if (file_size != 0 && file_size != total_bytes_read)
+    {
         perror("Expected file and received file dont match");
         exit(EXIT_FAILURE);
     }
