@@ -324,12 +324,17 @@ int main(int argc, char const *argv[])
     if (close(sockfd) < 0)
     {
         perror("close()");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     if (close(dataSockFD) < 0)
     {
         perror("close()");
-        exit(-1);
+        exit(EXIT_FAILURE);
+    }
+
+    if(file_size != total_bytes_read){
+        perror("Expected file and received file dont match");
+        exit(EXIT_FAILURE);
     }
     return 0;
 }
