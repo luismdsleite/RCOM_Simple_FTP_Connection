@@ -361,7 +361,7 @@ int get_download_details(const char *url, Download *download)
         char *separation = strchr(curpos, ':');
         if (separation == NULL)
         {
-            perror("strchr()");
+            perror("strchr() 3");
             return -1;
         }
         download->user = strndup(curpos, separation - curpos);
@@ -379,7 +379,7 @@ int get_download_details(const char *url, Download *download)
     occurrence = strchr(curpos, '/');
     if (occurrence == NULL)
     {
-        perror("strchr()");
+        perror("strchr() 1");
         return -1;
     }
     download->host = strndup(curpos, occurrence - curpos);
@@ -387,15 +387,16 @@ int get_download_details(const char *url, Download *download)
     // Getting filepath
     curpos = occurrence + 1;
     download->filepath = strdup(curpos);
-
     // Getting path
+
     occurrence = strrchr(download->filepath, '/');
     if (occurrence == NULL)
     {
-        perror("strchr()");
-        return -1;
+        printf(" %s\n", download->filepath);
+        char* file = malloc(strlen(download->filepath) + 1);
+        strcpy(file, download->filepath);
+        download->file = file;
     }
-    download->file = strdup(occurrence + 1);
     return 0;
 }
 
