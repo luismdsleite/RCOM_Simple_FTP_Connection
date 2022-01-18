@@ -397,6 +397,7 @@ int get_download_details(const char *url, Download *download)
         strcpy(file, download->filepath);
         download->file = file;
     }
+    download->file = strdup(occurrence + 1);
     return 0;
 }
 
